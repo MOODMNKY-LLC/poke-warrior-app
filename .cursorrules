@@ -1,0 +1,536 @@
+
+    You are an expert developer in TypeScript, Node.js, Next.js 14 App Router, React, Supabase, GraphQL, Genql, Tailwind CSS, Radix UI, and Shadcn UI.
+
+    Key Principles
+    - Write concise, technical responses with accurate TypeScript examples.
+    - Use functional, declarative programming. Avoid classes.
+    - Prefer iteration and modularization over duplication.
+    - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+    - Use lowercase with dashes for directories (e.g., components/auth-wizard).
+    - Favor named exports for components.
+    - Use the Receive an Object, Return an Object (RORO) pattern.
+
+    JavaScript/TypeScript
+    - Use "function" keyword for pure functions. Omit semicolons.
+    - Use TypeScript for all code. Prefer interfaces over types.
+    - File structure: Exported component, subcomponents, helpers, static content, types.
+    - Avoid unnecessary curly braces in conditional statements.
+    - For single-line statements in conditionals, omit curly braces.
+    - Use concise, one-line syntax for simple conditional statements (e.g., if (condition) doSomething()).
+
+    Error Handling and Validation
+    - Prioritize error handling and edge cases:
+      - Handle errors and edge cases at the beginning of functions.
+      - Use early returns for error conditions to avoid deeply nested if statements.
+      - Place the happy path last in the function for improved readability.
+      - Avoid unnecessary else statements; use if-return pattern instead.
+      - Use guard clauses to handle preconditions and invalid states early.
+      - Implement proper error logging and user-friendly error messages.
+      - Consider using custom error types or error factories for consistent error handling.
+
+    AI SDK
+    - Use the Vercel AI SDK UI for implementing streaming chat UI.
+    - Use the Vercel AI SDK Core to interact with language models.
+    - Use the Vercel AI SDK RSC and Stream Helpers to stream and help with the generations.
+    - Implement proper error handling for AI responses and model switching.
+    - Implement fallback mechanisms for when an AI model is unavailable.
+    - Handle rate limiting and quota exceeded scenarios gracefully.
+    - Provide clear error messages to users when AI interactions fail.
+    - Implement proper input sanitization for user messages before sending to AI models.
+    - Use environment variables for storing API keys and sensitive information.
+
+    React/Next.js
+    - Use functional components and TypeScript interfaces.
+    - Use declarative JSX.
+    - Use function, not const, for components.
+    - Use Shadcn UI, Radix, and Tailwind CSS for components and styling.
+    - Implement responsive design with Tailwind CSS.
+    - Use mobile-first approach for responsive design.
+    - Place static content and interfaces at file end.
+    - Use content variables for static content outside render functions.
+    - Minimize 'use client', 'useEffect', and 'setState'. Favor React Server Components (RSC).
+    - Use Zod for form validation.
+    - Wrap client components in Suspense with fallback.
+    - Use dynamic loading for non-critical components.
+    - Optimize images: WebP format, size data, lazy loading.
+    - Model expected errors as return values: Avoid using try/catch for expected errors in Server Actions.
+    - Use error boundaries for unexpected errors: Implement error boundaries using error.tsx and global-error.tsx files.
+    - Use useActionState with react-hook-form for form validation.
+    - Code in services/ dir always throw user-friendly errors that can be caught and shown to the user.
+    - Use next-safe-action for all server actions.
+    - Implement type-safe server actions with proper validation.
+    - Handle errors gracefully and return appropriate responses.
+
+    Supabase and GraphQL
+    - Use the Supabase client for database interactions and real-time subscriptions.
+    - Implement Row Level Security (RLS) policies for fine-grained access control.
+    - Use Supabase Auth for user authentication and management.
+    - Leverage Supabase Storage for file uploads and management.
+    - Use Supabase Edge Functions for serverless API endpoints when needed.
+    - Use the generated GraphQL client (Genql) for type-safe API interactions with Supabase.
+    - Optimize GraphQL queries to fetch only necessary data.
+    - Use Genql queries for fetching large datasets efficiently.
+    - Implement proper authentication and authorization using Supabase RLS and Policies.
+
+    Key Conventions
+    1. Rely on Next.js App Router for state changes and routing.
+    2. Prioritize Web Vitals (LCP, CLS, FID).
+    3. Minimize 'use client' usage:
+      - Prefer server components and Next.js SSR features.
+      - Use 'use client' only for Web API access in small components.
+      - Avoid using 'use client' for data fetching or state management.
+    4. Follow the monorepo structure:
+      - Place shared code in the 'packages' directory.
+      - Keep app-specific code in the 'apps' directory.
+    5. Use Taskfile commands for development and deployment tasks.
+    6. Adhere to the defined database schema and use enum tables for predefined values.
+
+    Naming Conventions
+    - Booleans: Use auxiliary verbs such as 'does', 'has', 'is', and 'should' (e.g., isDisabled, hasError).
+    - Filenames: Use lowercase with dash separators (e.g., auth-wizard.tsx).
+    - File extensions: Use .config.ts, .test.ts, .context.tsx, .type.ts, .hook.ts as appropriate.
+
+    Component Structure
+    - Break down components into smaller parts with minimal props.
+    - Suggest micro folder structure for components.
+    - Use composition to build complex components.
+    - Follow the order: component declaration, styled components (if any), TypeScript types.
+
+    Data Fetching and State Management
+    - Use React Server Components for data fetching when possible.
+    - Implement the preload pattern to prevent waterfalls.
+    - Leverage Supabase for real-time data synchronization and state management.
+    - Use Vercel KV for chat history, rate limiting, and session storage when appropriate.
+
+    Styling
+    - Use Tailwind CSS for styling, following the Utility First approach.
+    - Utilize the Class Variance Authority (CVA) for managing component variants.
+
+    Testing
+    - Implement unit tests for utility functions and hooks.
+    - Use integration tests for complex components and pages.
+    - Implement end-to-end tests for critical user flows.
+    - Use Supabase local development for testing database interactions.
+
+    Accessibility
+    - Ensure interfaces are keyboard navigable.
+    - Implement proper ARIA labels and roles for components.
+    - Ensure color contrast ratios meet WCAG standards for readability.
+
+    Documentation
+    - Provide clear and concise comments for complex logic.
+    - Use JSDoc comments for functions and components to improve IDE intellisense.
+    - Keep the README files up-to-date with setup instructions and project overview.
+    - Document Supabase schema, RLS policies, and Edge Functions when used.
+
+    Refer to Next.js documentation for Data Fetching, Rendering, and Routing best practices and to the
+    Vercel AI SDK documentation and OpenAI/Anthropic API guidelines for best practices in AI integration.
+
+    # Bootstrap Next.js app with Supabase Auth
+
+Create a Next.js app that uses App Router with Supabase Auth.
+
+Follow Supabase's guidelines for using the `@supabase/ssr` package and Server-Side Auth. Specifically, there should be:
+
+- A utility function to create a client on the client side
+- A utility function create a client on the server side, using the Next.js `cookies` API to access the cookies. Use the latest version of the API, where `cookies` must be awaited.
+- A utility function to handle refreshing the user session in middleware.
+
+## Working with cookies
+
+Use the latest version of `@supabase/ssr`, where cookie options are defined with the `getAll` and `setAll` functions, like so:
+
+```
+const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+```
+
+No other cookie options should be provided.
+
+## Middleware
+
+The middleware should use the following `updateSession` function:
+
+```
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function updateSession(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  // IMPORTANT: Avoid writing any logic between createServerClient and
+  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+  // issues with users being randomly logged out.
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (
+    !user &&
+    !request.nextUrl.pathname.startsWith('/login') &&
+    !request.nextUrl.pathname.startsWith('/auth')
+  ) {
+    // no user, potentially respond by redirecting the user to the login page
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
+  // creating a new response object with NextResponse.next() make sure to:
+  // 1. Pass the request in it, like so:
+  //    const myNewResponse = NextResponse.next({ request })
+  // 2. Copy over the cookies, like so:
+  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+  // 3. Change the myNewResponse object to fit your needs, but avoid changing
+  //    the cookies!
+  // 4. Finally:
+  //    return myNewResponse
+  // If this is not done, you may be causing the browser and server to go out
+  // of sync and terminate the user's session prematurely!
+
+  return supabaseResponse
+}
+```
+
+<!-- SUGGESTION: include the `code-format-sql.md` prompt for coding style. -->
+
+# Database: Create migration
+
+You are a Postgres Expert who loves creating secure database schemas.
+
+This project uses the migrations provided by the Supabase CLI.
+
+## Creating a migration file
+
+Given the context of the user's message, create a database migration file inside the folder `supabase/migrations/`.
+
+The file MUST following this naming convention:
+
+The file MUST be named in the format `YYYYMMDDHHmmss_short_description.sql` with proper casing for months, minutes, and seconds in UTC time:
+
+1. `YYYY` - Four digits for the year (e.g., `2024`).
+2. `MM` - Two digits for the month (01 to 12).
+3. `DD` - Two digits for the day of the month (01 to 31).
+4. `HH` - Two digits for the hour in 24-hour format (00 to 23).
+5. `mm` - Two digits for the minute (00 to 59).
+6. `ss` - Two digits for the second (00 to 59).
+7. Add an appropriate description for the migration.
+
+For example:
+
+```
+20240906123045_create_profiles.sql
+```
+
+
+## SQL Guidelines
+
+Write Postgres-compatible SQL code for Supabase migration files that:
+
+- Includes a header comment with metadata about the migration, such as the purpose, affected tables/columns, and any special considerations.
+- Includes thorough comments explaining the purpose and expected behavior of each migration step.
+- Write all SQL in lowercase.
+- Add copious comments for any destructive SQL commands, including truncating, dropping, or column alterations.
+- When creating a new table, you MUST enable Row Level Security (RLS) even if the table is intended for public access.
+- When creating RLS Policies
+  - Ensure the policies cover all relevant access scenarios (e.g. select, insert, update, delete) based on the table's purpose and data sensitivity.
+  - If the table  is intended for public access the policy can simply return `true`.
+  - RLS Policies should be granular: one policy for `select`, one for `insert` etc) and for each supabase role (`anon` and `authenticated`). DO NOT combine Policies even if the functionality is the same for both roles.
+  - Include comments explaining the rationale and intended behavior of each security policy
+
+The generated SQL code should be production-ready, well-documented, and aligned with Supabase's best practices.
+
+# Postgres SQL Style Guide
+
+## General
+
+- Use lowercase for SQL reserved words to maintain consistency and readability.
+- Employ consistent, descriptive identifiers for tables, columns, and other database objects.
+- Use white space and indentation to enhance the readability of your code.
+- Store dates in ISO 8601 format (`yyyy-mm-ddThh:mm:ss.sssss`).
+- Include comments for complex logic, using '/* ... */' for block comments and '--' for line comments.
+
+## Naming Conventions
+
+- Avoid SQL reserved words and ensure names are unique and under 63 characters.
+- Use snake_case for tables and columns.
+- Prefer plurals for table names
+- Prefer singular names for columns.
+
+## Tables
+
+- Avoid prefixes like 'tbl_' and ensure no table name matches any of its column names.
+- Always add an `id` column of type `identity generated always` unless otherwise specified.
+- Create all tables in the `public` schema unless otherwise specified.
+- Always add the schema to SQL queries for clarity.
+- Always add a comment to describe what the table does. The comment can be up to 1024 characters.
+
+## Columns
+
+- Use singular names and avoid generic names like 'id'.
+- For references to foreign tables, use the singular of the table name with the `_id` suffix. For example `user_id` to reference the `users` table
+- Always use lowercase except in cases involving acronyms or when readability would be enhanced by an exception.
+
+#### Examples:
+
+```sql
+create table books (
+  id bigint generated always as identity primary key,
+  title text not null,
+  author_id bigint references authors (id)
+);
+comment on table books is 'A list of all the books in the library.';
+```
+
+
+## Queries
+
+- When the query is shorter keep it on just a few lines. As it gets larger start adding newlines for readability
+- Add spaces for readability.
+
+Smaller queries:
+
+
+```sql
+select *
+from employees
+where end_date is null;
+
+update employees
+set end_date = '2023-12-31'
+where employee_id = 1001;
+```
+
+Larger queries:
+
+```sql
+select
+  first_name,
+  last_name
+from
+  employees
+where
+  start_date between '2021-01-01' and '2021-12-31'
+and
+  status = 'employed';
+```
+
+
+### Joins and Subqueries
+
+- Format joins and subqueries for clarity, aligning them with related SQL clauses.
+- Prefer full table names when referencing tables. This helps for readability.
+
+```sql
+select
+  employees.employee_name,
+  departments.department_name
+from
+  employees
+join
+  departments on employees.department_id = departments.department_id
+where
+  employees.start_date > '2022-01-01';
+```
+
+## Aliases
+
+- Use meaningful aliases that reflect the data or transformation applied, and always include the 'as' keyword for clarity.
+
+```sql
+select count(*) as total_employees
+from employees
+where end_date is null;
+```
+
+
+## Complex queries and CTEs
+
+- If a query is extremely complex, prefer a CTE.
+- Make sure the CTE is clear and linear. Prefer readability over performance.
+- Add comments to each block.
+
+```sql
+with department_employees as (
+  -- Get all employees and their departments
+  select
+    employees.department_id,
+    employees.first_name,
+    employees.last_name,
+    departments.department_name
+  from
+    employees
+  join
+    departments on employees.department_id = departments.department_id
+),
+employee_counts as (
+  -- Count how many employees in each department
+  select
+    department_name,
+    count(*) as num_employees
+  from
+    department_employees
+  group by
+    department_name
+)
+select
+  department_name,
+  num_employees
+from
+  employee_counts
+order by
+  department_name;
+```
+
+Application Overview: The Way of the Warrior Family
+The Way of the Warrior Family is a family management application designed to facilitate communication, organization, and management for families, particularly those with homeschooled children. The application will include features such as a family calendar, message board, AI virtual assistant, media storage, chore board, and reminders, all while ensuring secure access and role-based permissions.
+
+1. User Registration
+User Creation:
+When a new user (parent) registers, the system collects necessary information such as email, password, and family details.
+This information is stored in the auth.users table, including:
+id: Unique identifier for the user (UUID).
+email: User's email address.
+encrypted_password: Hashed password for security.
+created_at: Timestamp of when the user was created.
+is_sso_user: Indicates if the user is using Single Sign-On (SSO).
+Email Confirmation:
+After registration, a confirmation token is sent to the user's email.
+The user must confirm their account by clicking the link in the email, which updates the email_confirmed_at field.
+2. User Authentication
+Login Process:
+Parents log in using their email and password.
+The system verifies the credentials against the auth.users table.
+Upon successful login, a session and refresh token are generated.
+Token Generation:
+A refresh token is created and stored in the auth.refresh_tokens table, which includes:
+id: Unique identifier for the token (bigserial).
+token: The actual token string.
+user_id: Reference to the user who owns the token.
+created_at: Timestamp of when the token was created.
+revoked: Boolean indicating if the token has been revoked.
+3. Family Profile Creation
+Creating a Family Profile:
+Once logged in, parents can create a family profile by inserting a new record into the public.families table, which includes:
+id: Unique identifier for the family (UUID).
+family_name: Name of the family.
+family_motto: Motto or description of the family.
+avatar_url: URL for the family avatar.
+created_at: Timestamp of when the family profile was created.
+The family profile is linked to the parent through the owner field.
+4. Family Member Profile Creation
+Adding Family Members:
+Parents can add family members by creating entries in the public.family_members table. Each family member's profile includes:
+id: Unique identifier for the family member (UUID).
+display_name: Name displayed for the family member.
+full_name: Full name of the family member.
+family_id: Reference to the family profile (foreign key).
+role: Role of the family member (admin, child, etc.), which will be used for role-based access control (RBAC).
+birth_date: Date of birth of the family member.
+favorite_color: Favorite color of the family member.
+current_status: Field that allows family members to select their current status (e.g., "busy," "online").
+pin: A four-digit PIN set by each family member, which they can edit in their profile for secure access.
+avatar_url: URL for the family member's avatar, allowing each member to upload and display their own avatar.
+Role Assignment:
+Parents can assign roles to family members, which will dictate their permissions within the application.
+5. Session Management
+Session Creation:
+When a parent logs in, a session is created in the auth.sessions table, which tracks the user's active session. This includes:
+id: Unique identifier for the session (UUID).
+user_id: Reference to the user (foreign key).
+created_at: Timestamp of when the session was created.
+updated_at: Timestamp of the last update to the session.
+user_agent: Information about the user's browser or device.
+ip: IP address of the user.
+Multi-Factor Authentication (MFA):
+If MFA is enabled, the user may be required to complete an MFA challenge.
+
+6. Application Features (Continued)
+Family Calendar:
+
+A shared calendar where family members can add events, appointments, and reminders. This feature helps keep everyone organized and informed about family activities, such as school schedules, family gatherings, and important deadlines.
+Notifications: Users can set reminders for upcoming events, ensuring that no important dates are missed.
+Family Message Board:
+
+A real-time message board powered by Supabase Realtime, allowing family members to post messages, announcements, and updates. This feature fosters communication and keeps everyone in the loop about daily happenings.
+Threaded Conversations: Family members can reply to messages, creating a threaded conversation for better organization of discussions.
+AI Virtual Assistant:
+
+An AI-powered virtual assistant that can help family members with various tasks, such as answering questions, providing reminders, and assisting with educational resources.
+Knowledge Base: The virtual assistant can access a knowledge base built from family documents and media stored in the application, providing relevant information when needed.
+Media Storage:
+
+A dedicated storage solution using Supabase buckets, where each family member can have their own folder for uploading and managing media files, such as avatars, family documents, videos, and photos.
+File Organization: Family members can organize their media into folders, making it easy to find and manage files.
+Document Store: This storage will also serve as a document repository for important family documents, educational materials, and other resources.
+Chore Board:
+
+A chore management feature that allows parents to assign chores to family members, track completion, and set deadlines.
+Rewards System: Optionally, a rewards system can be implemented to encourage children to complete their chores, fostering responsibility and teamwork.
+Daily Messages and Reminders:
+
+A feature for sending daily messages or reminders to family members, which can include motivational quotes, reminders for tasks, or important announcements.
+Customizable Reminders: Family members can set their own reminders for personal tasks or events.
+7. Security and Role-Based Access Control (RBAC)
+Role Management:
+
+The application will implement role-based access control (RBAC) to ensure that family members have appropriate permissions based on their assigned roles (e.g., parent, child).
+Role Permissions: Different roles will have different permissions, such as who can add or remove family members, manage the calendar, or access certain documents.
+Secure Access:
+
+Each family member will have a unique four-digit PIN that they can set and modify in their profile. This PIN will be used for secure access to certain features of the application, ensuring that sensitive information is protected.
+Data Encryption: Sensitive data, such as passwords and personal information, will be encrypted to enhance security.
+8. Educational Features
+Resource Sharing:
+Parents can share educational resources, links, and materials with their children through the application, making it easier to access learning materials.
+Progress Tracking:
+The application can include features for tracking educational progress, such as completed lessons, assignments, and assessments, helping parents monitor their children's learning journey.
+Conclusion
+The Way of the Warrior Family aims to be a comprehensive family management tool that enhances communication, organization, and educational support for families, particularly those with homeschooled children. By integrating features like a family calendar, message board, AI virtual assistant, media storage, chore management, and secure access, the application will serve as a virtual dashboard for family management and various educational purposes.
+
+This holistic approach not only fosters a sense of community within the family but also empowers children to take an active role in their education and responsibilities.
+
+    

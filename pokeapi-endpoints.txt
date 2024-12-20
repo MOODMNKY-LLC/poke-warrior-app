@@ -1,0 +1,98 @@
+Below is a categorized guide to PokeAPI endpoints based on their respective functionalities. Each endpoint follows the base URL: **`https://pokeapi.co/api/v2/`**.
+---
+
+### **Berries**
+1. `/berry/{id or name}/` - Information about individual berries.
+2. `/berry-firmness/{id or name}/` - Berry firmness details.
+3. `/berry-flavor/{id or name}/` - Berry flavor data.
+
+---
+
+### **Contests**
+4. `/contest-type/{id or name}/` - Contest type data.
+5. `/contest-effect/{id}/` - Effects associated with contests.
+6. `/super-contest-effect/{id}/` - Effects in super contests.
+
+---
+
+### **Encounters**
+7. `/encounter-method/{id or name}/` - Methods of encountering Pokémon.
+8. `/encounter-condition/{id or name}/` - Encounter conditions.
+9. `/encounter-condition-value/{id or name}/` - Specific values for encounter conditions.
+
+---
+
+### **Evolution**
+10. `/evolution-chain/{id}/` - Evolution chains of Pokémon.
+11. `/evolution-trigger/{id or name}/` - Triggers for evolution.
+
+---
+
+### **Games**
+12. `/generation/{id or name}/` - Data on game generations.
+13. `/pokedex/{id or name}/` - Pokédex listings for regions or games.
+14. `/version/{id or name}/` - Individual game versions.
+15. `/version-group/{id or name}/` - Groups of related game versions.
+
+---
+
+### **Items**
+16. `/item/{id or name}/` - Data on individual items.
+17. `/item-attribute/{id or name}/` - Attributes associated with items.
+18. `/item-category/{id or name}/` - Categories that items belong to.
+19. `/item-fling-effect/{id or name}/` - Effects when items are used with the Fling move.
+20. `/item-pocket/{id or name}/` - Organizational categories for items in the bag.
+
+---
+
+### **Locations**
+21. `/location/{id or name}/` - Broad locations (e.g., cities, routes).
+22. `/location-area/{id or name}/` - Areas within locations.
+23. `/pal-park-area/{id or name}/` - Areas within Pal Park.
+24. `/region/{id or name}/` - Regions within the Pokémon world.
+
+---
+
+### **Machines**
+25. `/machine/{id}/` - Data on TMs and HMs.
+
+---
+
+### **Moves**
+26. `/move/{id or name}/` - Detailed move data.
+27. `/move-ailment/{id or name}/` - Ailments caused by moves.
+28. `/move-battle-style/{id or name}/` - Styles of moves in battle.
+29. `/move-category/{id or name}/` - Categories of moves.
+30. `/move-damage-class/{id or name}/` - Damage classes of moves.
+31. `/move-learn-method/{id or name}/` - Methods of learning moves.
+32. `/move-target/{id or name}/` - Move targets.
+
+---
+
+### **Pokémon**
+33. `/ability/{id or name}/` - Pokémon abilities.
+34. `/characteristic/{id}/` - Characteristics based on stats.
+35. `/egg-group/{id or name}/` - Egg groups for breeding.
+36. `/gender/{id or name}/` - Gender ratio data.
+37. `/growth-rate/{id or name}/` - Experience growth rates.
+38. `/nature/{id or name}/` - Pokémon natures.
+39. `/pokeathlon-stat/{id or name}/` - Pokéathlon-specific stats.
+40. `/pokemon/{id or name}/` - Comprehensive Pokémon data.
+41. `/pokemon-color/{id or name}/` - Pokémon color classifications.
+42. `/pokemon-form/{id or name}/` - Data on alternate Pokémon forms.
+43. `/pokemon-habitat/{id or name}/` - Pokémon habitats.
+44. `/pokemon-shape/{id or name}/` - Pokémon shape data.
+45. `/pokemon-species/{id or name}/` - Pokémon species-specific data.
+46. `/stat/{id or name}/` - Base stats data.
+47. `/type/{id or name}/` - Pokémon type data.
+
+---
+
+### **Utility**
+48. `/` (Root endpoint) - Provides general API info.
+49. Resource Lists with Pagination:
+   - Use `?limit=NUMBER` and `?offset=NUMBER` query parameters to paginate.
+
+---
+
+This comprehensive list represents all endpoints in the **PokeAPI**.

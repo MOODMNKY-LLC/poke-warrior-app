@@ -8,36 +8,101 @@ import { redirect } from "next/navigation";
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
+  const familyName = formData.get("family_name")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  if (!email || !password) {
+  if (!email || !password || !familyName) {
     return encodedRedirect(
       "error",
       "/sign-up",
-      "Email and password are required",
+      "Email, password, and family name are required",
     );
   }
 
-  const { error } = await supabase.auth.signUp({
+  // First check if a profile already exists with this family name
+  const { data: existingProfile } = await supabase
+    .from('family_profiles')
+    .select('family_name')
+    .eq('family_name', familyName)
+    .single()
+
+  if (existingProfile) {
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "This family name is already taken. Please choose another.",
+    )
+  }
+
+  // Proceed with user creation
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
+      data: {
+        family_name: familyName
+      }
     },
   });
 
   if (error) {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
-  } else {
-    return encodedRedirect(
-      "success",
-      "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link.",
-    );
   }
-};
+
+  // Create initial family profile if user was created
+  if (data?.user) {
+    // First check if a profile already exists for this user
+    const { data: existingUserProfile } = await supabase
+      .from('family_profiles')
+      .select('id')
+      .eq('id', data.user.id)
+      .single()
+
+    if (existingUserProfile) {
+      console.log('Profile already exists for user')
+      return encodedRedirect(
+        "success",
+        "/sign-up",
+        "Thanks for signing up! Please check your email for a verification link.",
+      )
+    }
+
+    // Create new profile if one doesn't exist
+    const { error: profileError } = await supabase
+      .from('family_profiles')
+      .insert({
+        id: data.user.id,
+        family_name: familyName,
+        timezone: 'UTC',
+        locale: 'en',
+        settings: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+
+    if (profileError) {
+      console.error('Failed to create family profile:', profileError)
+      // If profile creation fails, we should clean up the auth user
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(data.user.id)
+      if (deleteError) console.error('Failed to clean up auth user:', deleteError)
+      
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Failed to create family profile. Please try again."
+      )
+    }
+  }
+
+  return encodedRedirect(
+    "success",
+    "/sign-up",
+    "Thanks for signing up! Please check your email for a verification link.",
+  )
+}
 
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
