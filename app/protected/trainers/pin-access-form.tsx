@@ -58,19 +58,14 @@ export function PinAccessForm({ memberId, memberName }: PinAccessFormProps) {
           value={pin}
           onChange={(value) => setPin(value)}
           maxLength={6}
-          render={({ slots }) => (
-            <InputOTPGroup className="gap-2">
-              {slots.map((slot, i) => (
-                <InputOTPSlot
-                  key={i}
-                  {...slot}
-                  index={i}
-                  className="w-10 h-12 text-lg"
-                />
-              ))}
-            </InputOTPGroup>
-          )}
-        />
+          containerClassName="group flex items-center has-[:disabled]:opacity-50"
+        >
+          <InputOTPGroup>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <InputOTPSlot key={i} index={i} className="w-10 h-12 text-lg" />
+            ))}
+          </InputOTPGroup>
+        </InputOTP>
       </div>
 
       <Button 

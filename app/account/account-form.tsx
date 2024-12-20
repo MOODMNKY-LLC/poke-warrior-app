@@ -46,23 +46,12 @@ export default function AccountForm({ user }: { user: User | null }) {
         .single()
 
       if (error) {
-        if (status === 406) {
-          // Profile doesn't exist yet, create it
-          const { error: insertError } = await supabase
-            .from('family_profiles')
-            .insert({
-              id: user.id,
-              family_name: 'New Family',
-              family_motto: null,
-              avatar_url: null
-            })
-            .single()
-
-          if (insertError) throw insertError
-
-          // Fetch the newly created profile
-          return getProfile()
-        }
+        console.error('Supabase error:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        })
         throw error
       }
 
@@ -79,7 +68,8 @@ export default function AccountForm({ user }: { user: User | null }) {
       console.error('Error details:', {
         message: dbError.message,
         code: dbError.code,
-        details: dbError.details
+        details: dbError.details,
+        stack: (error as Error).stack
       })
     } finally {
       setLoading(false)
@@ -143,19 +133,21 @@ export default function AccountForm({ user }: { user: User | null }) {
       <div className="space-y-8">
         {/* Avatar Section */}
         <div className="flex flex-col items-center gap-4">
-          <AvatarUpload
-            uid={user?.id ?? null}
-            url={avatar_url}
-            size={150}
-            onUpload={(url) => {
-              setAvatarUrl(url)
-              updateProfile({ 
-                family_name: familyName, 
-                family_motto: familyMotto, 
-                avatar_url: url 
-              })
-            }}
-          />
+          {user?.id && (
+            <AvatarUpload
+              uid={user.id}
+              url={avatar_url}
+              size={150}
+              onUpload={(url) => {
+                setAvatarUrl(url)
+                updateProfile({ 
+                  family_name: familyName, 
+                  family_motto: familyMotto, 
+                  avatar_url: url 
+                })
+              }}
+            />
+          )}
           <h2 className="text-2xl font-bold">Family Profile Settings</h2>
         </div>
 

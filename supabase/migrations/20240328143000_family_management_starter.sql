@@ -81,66 +81,87 @@ alter table family_profiles enable row level security;
 alter table family_members enable row level security;
 alter table roles enable row level security;
 
--- Family Profiles Policies
-drop policy if exists "Family profiles are viewable by family members" on family_profiles;
-drop policy if exists "Family profiles can be updated by admins" on family_profiles;
+-- Drop existing policies first to avoid conflicts
+drop policy if exists "Users can view their own family profile" on family_profiles;
+drop policy if exists "Users can update their own family profile" on family_profiles;
+drop policy if exists "Users can insert their own family profile" on family_profiles;
+drop policy if exists "Users can view their family members" on family_members;
+drop policy if exists "Users can create family members" on family_members;
+drop policy if exists "Users can update their family members" on family_members;
+drop policy if exists "Roles are viewable by everyone" on roles;
+drop policy if exists "Avatar images are publicly accessible" on storage.objects;
+drop policy if exists "Users can upload avatars" on storage.objects;
+drop policy if exists "Users can update own avatars" on storage.objects;
 
--- Allow users to view their own family profile
-create policy "Users can view own family profile"
+-- Family Profiles policies
+create policy "Users can view their own family profile"
   on family_profiles for select
   using (auth.uid() = id);
 
--- Allow users to update their own family profile
-create policy "Users can update own family profile"
-  on family_profiles for update
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
-
--- Allow users to insert their own family profile
-create policy "Users can insert own family profile"
+create policy "Users can insert their own family profile"
   on family_profiles for insert
   with check (auth.uid() = id);
 
--- Family Members Policies
--- Allow users to view members of their own family
+create policy "Users can update their own family profile"
+  on family_profiles for update
+  using (auth.uid() = id);
+
+-- Family Members policies
 create policy "Users can view family members"
   on family_members for select
   using (
-    family_id = auth.uid() -- User is the family admin
-    or
-    family_id in ( -- User is a member of the family
-      select family_id 
-      from family_members 
-      where id = auth.uid()
-    )
-  );
-
--- Allow users to update their own profile
-create policy "Users can update own profile"
-  on family_members for update
-  using (id = auth.uid())
-  with check (id = auth.uid());
-
--- Allow family admins to manage family members
-create policy "Admins can manage family members"
-  on family_members for all
-  using (
     exists (
-      select 1 
-      from family_profiles 
-      where family_profiles.id = family_members.family_id 
-      and family_profiles.id = auth.uid()
+      select 1
+      from family_profiles
+      where id = family_members.family_id
+      and id = auth.uid()
     )
   );
 
--- Allow users to insert themselves as family members (for joining families)
-create policy "Users can insert themselves as members"
+create policy "Users can create family members"
   on family_members for insert
   with check (
-    id = auth.uid() 
-    or 
-    family_id = auth.uid() -- Family admin can add members
+    exists (
+      select 1
+      from family_profiles
+      where id = family_members.family_id
+      and id = auth.uid()
+    )
   );
+
+create policy "Users can update family members"
+  on family_members for update
+  using (
+    exists (
+      select 1
+      from family_profiles
+      where id = family_members.family_id
+      and id = auth.uid()
+    )
+  );
+
+-- Roles policies (public reference data)
+create policy "Roles are viewable by everyone"
+  on roles for select
+  using (true);
+
+-- Create storage bucket for avatars if it doesn't exist
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+-- Storage policies for avatars (simplified and corrected)
+create policy "Public avatar access"
+  on storage.objects for select
+  using (bucket_id = 'avatars');
+
+create policy "Authenticated users can upload avatars"
+  on storage.objects for insert
+  with check (bucket_id = 'avatars' and auth.role() = 'authenticated');
+
+create policy "Users can update their own avatars"
+  on storage.objects for update
+  using (bucket_id = 'avatars' and auth.role() = 'authenticated');
 
 -- Create function to handle new user registration
 create or replace function handle_new_user_registration()
@@ -205,64 +226,3 @@ create trigger update_family_members_updated_at
 create trigger update_roles_updated_at
   before update on roles
   for each row execute procedure update_updated_at_column();
-
--- Create storage bucket for avatars if it doesn't exist
-insert into storage.buckets (id, name)
-values ('avatars', 'avatars')
-on conflict (id) do nothing;
-
--- Allow public access to avatars
-create policy "Avatar images are publicly accessible"
-  on storage.objects for select
-  using ( bucket_id = 'avatars' );
-
--- Allow authenticated users to upload avatars
-create policy "Users can upload avatars"
-  on storage.objects for insert
-  with check (
-    bucket_id = 'avatars' 
-    and auth.role() = 'authenticated'
-  );
-
--- Allow users to update their own avatars
-create policy "Users can update own avatars"
-  on storage.objects for update
-  using (
-    bucket_id = 'avatars' 
-    and auth.uid() = owner
-  );
-
--- After enabling RLS for roles table, add these policies:
-
--- Allow anyone to read roles (they are public reference data)
-create policy "Roles are viewable by everyone"
-  on roles for select
-  using (true);
-
--- Only allow system level updates to roles (no policy needed for insert/update/delete)
-
--- Family Profiles policies
-create policy "Users can view their own family profile"
-  on family_profiles for select
-  using (auth.uid() = id);
-
-create policy "Users can update their own family profile"
-  on family_profiles for update
-  using (auth.uid() = id);
-
--- Family Members policies
-create policy "Users can view their family members"
-  on family_members for select
-  using (auth.uid() = family_id);
-
-create policy "Users can create family members"
-  on family_members for insert
-  with check (auth.uid() = family_id);
-
-create policy "Users can update their family members"
-  on family_members for update
-  using (auth.uid() = family_id);
-
--- Enable RLS on the tables
-alter table family_profiles enable row level security;
-alter table family_members enable row level security;

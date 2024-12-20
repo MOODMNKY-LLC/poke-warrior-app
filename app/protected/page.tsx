@@ -12,7 +12,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { formatDistanceToNow } from 'date-fns'
 import { JsonObject } from 'type-fest'
 
-// Types based on our SQL schema
+// Define interfaces for our data structures
+interface Role {
+  id: number
+  name: string
+  description: string | null
+}
+
+interface FamilyMember {
+  id: string
+  display_name: string
+  full_name: string
+  birth_date: string | null
+  favorite_color: string | null
+  current_status: string
+  avatar_url: string | null
+  created_at: string
+  role_id: number
+  roles: Role // This is a single role object, not an array
+}
+
 interface FamilyProfile {
   id: string
   family_name: string
@@ -26,22 +45,7 @@ interface FamilyProfile {
   settings: JsonObject | null
 }
 
-interface FamilyMember {
-  id: string
-  display_name: string
-  full_name: string
-  birth_date: string | null
-  favorite_color: string | null
-  current_status: string
-  avatar_url: string | null
-  created_at: string
-  roles: {
-    name: string
-    description: string | null
-  }
-}
-
-export default async function DashboardPage() {
+export default async function ProtectedPage() {
   const supabase = await createClient()
 
   const {
@@ -50,161 +54,153 @@ export default async function DashboardPage() {
 
   if (!user) return redirect("/sign-in")
 
-  // Fetch family profile with all fields
-  const { data: familyProfile } = await supabase
-    .from('family_profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  // Fetch roles for the form
-  const { data: roles } = await supabase
+  // Fetch roles first
+  const { data: roles, error: rolesError } = await supabase
     .from('roles')
     .select('*')
-    .order('id')
+    .order('id', { ascending: true }) as { data: Role[] | null, error: any }
+
+  if (rolesError) {
+    console.error('Error fetching roles:', rolesError)
+    return null
+  }
+
+  // Fetch family profile with all fields
+  const { data: familyProfile, error: profileError } = await supabase
+    .from('family_profiles')
+    .select(`
+      id,
+      family_name,
+      family_motto,
+      avatar_url,
+      created_at,
+      updated_at,
+      theme_color,
+      timezone,
+      locale,
+      settings
+    `)
+    .eq('id', user.id)
+    .single() as { data: FamilyProfile | null, error: any }
+
+  if (profileError || !familyProfile) {
+    console.error('Error fetching family profile:', profileError)
+    return redirect("/sign-in")  // Redirect to sign-in if no profile exists
+  }
+
+  // Get the public URL for the family profile avatar
+  let familyAvatarUrl = null
+  if (familyProfile.avatar_url) {
+    const { data } = supabase.storage.from('avatars').getPublicUrl(familyProfile.avatar_url)
+    familyAvatarUrl = data.publicUrl
+  }
 
   // Fetch family members with role info
-  const { data: familyMembers } = await supabase
+  const { data: familyMembers, error: membersError } = await supabase
     .from('family_members')
     .select(`
-      *,
-      roles (
+      id,
+      display_name,
+      full_name,
+      birth_date,
+      favorite_color,
+      current_status,
+      avatar_url,
+      created_at,
+      role_id,
+      roles:role_id (
+        id,
         name,
         description
       )
     `)
     .eq('family_id', user.id)
+    .order('created_at', { ascending: true }) as { data: FamilyMember[] | null, error: any }
 
-  if (!familyProfile || !roles) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <GlassCard className="p-8">
-          <p className="text-muted-foreground">
-            Unable to load family profile. Please try again later.
-          </p>
-        </GlassCard>
-      </div>
-    )
+  if (membersError) {
+    console.error('Error fetching family members:', membersError)
+    return null
   }
 
-  // Debug logging
-  console.log('Family Profile:', familyProfile)
-  console.log('Family Members:', familyMembers)
-  console.log('Roles:', roles)
+  // Get public URLs for all family member avatars
+  const membersWithAvatars = familyMembers?.map(member => ({
+    ...member,
+    avatar_url: member.avatar_url ? 
+      supabase.storage.from('avatars').getPublicUrl(member.avatar_url).data.publicUrl : 
+      null
+  }))
 
   // Get member counts by role
   const membersByRole = familyMembers?.reduce((acc, member) => {
-    const role = member.roles.name
-    acc[role] = (acc[role] || 0) + 1
+    const roleName = member.roles?.name
+    if (roleName) {
+      acc[roleName] = (acc[roleName] || 0) + 1
+    }
     return acc
   }, {} as Record<string, number>)
 
-  // Add loading states for family members
-  const familyMembersLoading = !familyMembers
-
   return (
     <div className="flex-1 space-y-8 p-8 pt-6">
-      {/* Hero Section with Family Profile */}
-      <GlassCard className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-background/10 to-background/80" />
-        <div className="relative p-6">
-          <div className="flex items-start gap-6">
-            <Avatar className="w-24 h-24 border-2 border-primary/20">
-              <AvatarImage src={familyProfile?.avatar_url || undefined} />
-              <AvatarFallback>
-                {familyProfile?.family_name?.[0].toUpperCase() || '?'}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 space-y-4">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                  The {familyProfile?.family_name}
-                </h1>
-                {familyProfile?.family_motto && (
-                  <p className="text-muted-foreground italic mt-1">
-                    "{familyProfile.family_motto}"
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Badge variant="secondary">
-                  Established {new Date(familyProfile?.created_at).getFullYear()}
-                </Badge>
-                <Badge variant="secondary">
-                  {familyMembers?.length || 0} Members
-                </Badge>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/account">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Family Settings
-                </Link>
-              </Button>
-              <AddFamilyMemberDialog 
-                familyId={user.id} 
-                roles={roles || []} // Pass the fetched roles
-              />
-            </div>
-          </div>
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold">
+            Welcome, {familyProfile.family_name}
+          </h1>
+          {familyProfile.family_motto && (
+            <p className="text-muted-foreground">
+              {familyProfile.family_motto}
+            </p>
+          )}
         </div>
-      </GlassCard>
-
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <GlassCard className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Total Members</p>
-              <h3 className="text-2xl font-bold">{familyMembers?.length || 0}</h3>
-            </div>
-            <Users className="h-8 w-8 text-muted-foreground" />
-          </div>
-        </GlassCard>
-        
-        <GlassCard className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Parents</p>
-              <h3 className="text-2xl font-bold">{membersByRole?.parent || 0}</h3>
-            </div>
-            <Users className="h-8 w-8 text-muted-foreground" />
-          </div>
-        </GlassCard>
-
-        <GlassCard className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Teens</p>
-              <h3 className="text-2xl font-bold">{membersByRole?.teen || 0}</h3>
-            </div>
-            <Users className="h-8 w-8 text-muted-foreground" />
-          </div>
-        </GlassCard>
-
-        <GlassCard className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Children</p>
-              <h3 className="text-2xl font-bold">{membersByRole?.child || 0}</h3>
-            </div>
-            <Users className="h-8 w-8 text-muted-foreground" />
-          </div>
-        </GlassCard>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/account">
+              <Settings className="h-4 w-4 mr-2" />
+              Family Settings
+            </Link>
+          </Button>
+          <AddFamilyMemberDialog 
+            familyId={user.id} 
+            roles={roles || []} 
+          />
+        </div>
       </div>
 
-      {/* Family Members Grid */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      {/* Family Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{familyMembers?.length || 0}</div>
+          </CardContent>
+        </Card>
+
+        {Object.entries(membersByRole || {}).map(([role, count]) => (
+          <Card key={role}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium capitalize">
+                {role}s
+              </CardTitle>
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{count}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Family Members */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold tracking-tight">Family Members</h2>
         </div>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {familyMembers?.map((member) => (
+          {membersWithAvatars?.map((member) => (
             <Link 
               key={member.id}
               href={`/protected/trainers/${member.id}`}

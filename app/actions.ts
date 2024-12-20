@@ -95,6 +95,21 @@ export const signUpAction = async (formData: FormData) => {
         "Failed to create family profile. Please try again."
       )
     }
+
+    // Create initial admin family member
+    const { error: memberError } = await supabase
+      .from('family_members')
+      .insert({
+        family_id: data.user.id,
+        display_name: familyName,
+        full_name: familyName,
+        role_id: 1, // Admin role
+        current_status: 'online'
+      })
+
+    if (memberError) {
+      console.error('Error creating family member:', memberError)
+    }
   }
 
   return encodedRedirect(

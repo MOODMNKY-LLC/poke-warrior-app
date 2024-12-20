@@ -3,6 +3,9 @@ import { redirect } from "next/navigation"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Metadata } from "next"
+import { Button } from "@/components/ui/button"
+import { Pencil } from "lucide-react"
+import Link from "next/link"
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -51,13 +54,23 @@ export default async function TrainerProfilePage({
     redirect('/protected')
   }
 
+  // Get the public URL for the avatar
+  let avatarUrl = null
+  if (member.avatar_url) {
+    const { data } = supabase
+      .storage
+      .from('avatars')
+      .getPublicUrl(member.avatar_url)
+    avatarUrl = data.publicUrl
+  }
+
   return (
     <div className="flex-1 p-8">
       <div className="max-w-2xl mx-auto space-y-8">
         <GlassCard className="p-8">
           <div className="flex items-center gap-6">
             <Avatar className="w-24 h-24">
-              <AvatarImage src={member.avatar_url || undefined} />
+              <AvatarImage src={avatarUrl || undefined} />
               <AvatarFallback>
                 {member.display_name[0].toUpperCase()}
               </AvatarFallback>
@@ -71,7 +84,14 @@ export default async function TrainerProfilePage({
             </div>
           </div>
 
-          {/* Add more profile content here */}
+          <div className="flex justify-end mt-6">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/protected/trainers/${member.id}/profile/edit`}>
+                <Pencil className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Link>
+            </Button>
+          </div>
         </GlassCard>
       </div>
     </div>

@@ -31,15 +31,15 @@ export default async function TrainerAccessPage({
   searchParams 
 }: PageProps) {
   const { id } = await params
-  const query = await searchParams
   const supabase = await createClient()
 
-  // Fetch the family member details
+  // Fetch the family member details with role info
   const { data: member, error } = await supabase
     .from('family_members')
     .select(`
       *,
       roles (
+        id,
         name,
         description
       )
@@ -49,6 +49,11 @@ export default async function TrainerAccessPage({
 
   if (error || !member) {
     redirect('/protected')
+  }
+
+  // If member is an admin, redirect directly to profile
+  if (member.roles.name === 'admin') {
+    redirect(`/protected/trainers/${member.id}/profile`)
   }
 
   return (
